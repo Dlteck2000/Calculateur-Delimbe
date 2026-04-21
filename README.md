@@ -1,5 +1,9 @@
 # Calculateur de Réglage Delimbe T24 & T28
 
+<p align="center">
+  <img src="capture.png" width="350" title="Aperçu de l'interface">
+</p>
+
 [Version Française](#version-française) | [English Version](#english-version)
 
 ---

@@ -32,9 +32,9 @@ const tableDebitT5 = [
 
 // Configuration par modèle
 const configModeles = {
-    "T5":  { table: tableDebitT5,      largeurMin: 3.0,  largeurMax: 10.0, potentio: false },
-    "T24": { table: tableDebitT24_T28, largeurMin: 4.0,  largeurMax: 24.0, potentio: true  },
-    "T28": { table: tableDebitT24_T28, largeurMin: 4.0,  largeurMax: 28.0, potentio: true  }
+    "T5":  { table: tableDebitT5,      largeurMin: 3.0, largeurMax: 10.0, potentio: false },
+    "T24": { table: tableDebitT24_T28, largeurMin: 4.0, largeurMax: 24.0, potentio: true  },
+    "T28": { table: tableDebitT24_T28, largeurMin: 4.0, largeurMax: 28.0, potentio: true  }
 };
 
 async function sauvegarderReglages() {
@@ -78,26 +78,37 @@ async function chargerReglages() {
 }
 
 function onButton(doSave = true) {
-    const modele  = document.getElementById("modeleDelimbe").value;
-    const config  = configModeles[modele];
-    const table   = config.table;
+    const modele = document.getElementById("modeleDelimbe").value;
+    const config = configModeles[modele];
+    const table  = config.table;
 
     const largeurSaisie = parseFloat(document.getElementById("largeurDelimbe").value) || 0;
     const vitesse       = parseFloat(document.getElementById("vitesseDelimbe").value) || 0;
     const dose          = parseFloat(document.getElementById("doseDelimbe").value) || 0;
     const densite       = parseFloat(document.getElementById("densiteDelimbe").value) || 1.0;
 
-    const largeurMin    = config.largeurMin;
-    const largeurMax    = config.largeurMax;
-    const largeurCalc   = Math.min(largeurSaisie, largeurMax);
+    const largeurMin  = config.largeurMin;
+    const largeurMax  = config.largeurMax;
+    const largeurCalc = Math.min(Math.max(largeurSaisie, largeurMin), largeurMax);
 
-    // --- Affichage / masquage du bloc potentiomètre ---
-    const blocPotentio = document.getElementById("blocPotentiometre");
-    if (blocPotentio) {
-        blocPotentio.style.display = config.potentio ? "block" : "none";
+    // --- 1. Bloc avertissement largeur (tous modèles, masqué si dans la plage) ---
+    const blocLargeur = document.getElementById("blocLargeur");
+    if (largeurSaisie < largeurMin) {
+        blocLargeur.style.display = "block";
+        blocLargeur.innerHTML = "<p>⚠️ Largeur trop faible — minimum : <b>" + largeurMin + "m</b><br>" +
+            "<span class='w3-small'>Augmenter la largeur de travail.</span></p>";
+    } else if (largeurSaisie > largeurMax) {
+        blocLargeur.style.display = "block";
+        blocLargeur.innerHTML = "<p>⚠️ Largeur trop grande — maximum : <b>" + largeurMax + "m</b> (calcul bridé)<br>" +
+            "<span class='w3-small'>Réduire la largeur de travail.</span></p>";
+    } else {
+        blocLargeur.style.display = "none";
+        blocLargeur.innerHTML = "";
     }
 
-    // --- 1. Potentiomètre (T24 / T28 uniquement) ---
+    // --- 2. Potentiomètre (T24 / T28 uniquement) ---
+    const blocPotentio = document.getElementById("blocPotentiometre");
+    blocPotentio.style.display = config.potentio ? "block" : "none";
     if (config.potentio) {
         let elemPotentio = document.getElementById("resPotentiometre");
         if (largeurSaisie <= largeurMin) {
@@ -110,44 +121,29 @@ function onButton(doSave = true) {
         }
     }
 
-    // --- 1b. Message limite largeur pour T5 (sans potentiomètre) ---
-    const blocLargeurT5 = document.getElementById("blocLargeurT5");
-    if (blocLargeurT5) {
-        if (!config.potentio) {
-            blocLargeurT5.style.display = "block";
-            if (largeurSaisie < largeurMin) {
-                blocLargeurT5.innerHTML = "<span class='w3-text-red'>⚠️ Largeur minimum : " + largeurMin + "m</span>";
-            } else if (largeurSaisie > largeurMax) {
-                blocLargeurT5.innerHTML = "<span class='w3-text-red'>⚠️ Largeur maximum : " + largeurMax + "m (bridé à " + largeurMax + "m)</span>";
-            } else {
-                blocLargeurT5.innerHTML = "<span class='w3-text-green'>✔ Largeur valide (" + largeurMin + "m – " + largeurMax + "m)</span>";
-            }
-        } else {
-            blocLargeurT5.style.display = "none";
-        }
-    }
+    // --- 3. Calculs de débit ---
+    let haHeure    = (largeurCalc * vitesse) / 10;
+    let kgHeureReel = dose * haHeure;
 
-    // --- 2. Calculs de débit ---
-    let haHeure        = (largeurCalc * vitesse) / 10;
-    let kgHeureReel    = dose * haHeure;
-    let kgHeureTableau = kgHeureReel / densite;
+    document.getElementById("resHaHeure").innerText = haHeure.toFixed(2) + " ha par heure";
+    document.getElementById("resKgHeure").innerText = kgHeureReel.toFixed(2) + " Kg par heure";
 
-    document.getElementById("resHaHeure").innerText  = haHeure.toFixed(2) + " ha par heure";
-    document.getElementById("resKgHeure").innerText  = kgHeureReel.toFixed(2) + " Kg par heure";
-
-    // --- 3. Ouverture de trappe (interpolation) — calculée AVANT le tableau pour surligner ---
+    // --- 4. Ouverture de trappe (calculée AVANT le tableau pour surligner) ---
     let elemOuverture = document.getElementById("resOuverture");
-    const dMin        = table[0].d;
-    const dMaxTableau = table[table.length - 1].d;
-    const dMaxReel    = (dMaxTableau * densite).toFixed(1);
-    let ouvertureArrondie = -1; // ligne à surligner (-1 = aucune)
+    const dMin = table[0].d * densite;
+    const dMax = table[table.length - 1].d * densite;
+    let ouvertureArrondie = -1;
 
-    if (kgHeureTableau < dMin) {
-        elemOuverture.innerHTML = "<span class='w3-text-red w3-medium'>⚠️ Débit trop faible</span>";
-    } else if (kgHeureTableau > dMaxTableau) {
+    if (kgHeureReel < dMin) {
+        elemOuverture.innerHTML = "<span class='w3-text-red w3-medium'>⚠️ Débit trop faible<br>" +
+            "<span class='w3-small w3-text-red'>Augmenter la dose ou augmenter la vitesse.</span></span>";
+    } else if (kgHeureReel > dMax) {
         ouvertureArrondie = table[table.length - 1].n;
-        elemOuverture.innerHTML = "<b>" + ouvertureArrondie + "</b> <br><span class='w3-medium w3-text-red'>⚠️ Max atteint (" + dMaxReel + " Kg/h)</span>";
+        elemOuverture.innerHTML = "<b>" + ouvertureArrondie + "</b>" +
+            "<br><span class='w3-medium w3-text-red'>⚠️ Débit max atteint (" + dMax.toFixed(1) + " Kg/h)<br>" +
+            "<span class='w3-small'>Baisser la dose ou baisser la vitesse.</span></span>";
     } else {
+        let kgHeureTableau = kgHeureReel / densite;
         let i = 0;
         while (i < table.length - 1 && kgHeureTableau > table[i + 1].d) i++;
         let p1 = table[i], p2 = table[i + 1];
@@ -157,7 +153,7 @@ function onButton(doSave = true) {
             "<span class='w3-medium w3-text-grey'>(Précis : " + ouvPrecise.toFixed(1) + ")</span>";
     }
 
-    // --- 4. Tableau dynamique avec surlignage de la ligne active ---
+    // --- 5. Tableau dynamique avec surlignage de la ligne active ---
     let tableBody = document.getElementById("tableBodyDelimbe");
     tableBody.innerHTML = "";
     table.forEach(ligne => {

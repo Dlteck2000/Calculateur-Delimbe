@@ -1,4 +1,4 @@
-# Calculateur de Réglage Delimbe T24 & T28
+# Calculateur de Réglage Delimbe T4, T5, T24, T28
 
 <p align="center">
   <img src="capture.png" width="350" title="Aperçu de l'interface">
@@ -10,11 +10,11 @@
 
 ## Version Française
 
-Outil de calcul de précision pour les épandeurs anti-limaces Delimbe modèles T24 et T28. 
+Outil de calcul de précision pour les épandeurs anti-limaces Delimbe modèles T4, T5, T24 et T28. 
 Cette application web permet de déterminer rapidement l'ouverture de la trappe (mécanique) et la position du potentiomètre de largeur (électrique) en cabine.
 
 ### 🚀 Fonctionnalités
-- **Sélection du modèle** : Supporte le T24 (max 24m) et le T28 (max 28m).
+- **Sélection du modèle** : Supporte le T4/T5 (3 à 10m) le T24 (max 24m) et le T28 (max 28m).
 - **Calcul précis** : Détermine l'ouverture de trappe optimale selon la dose, la vitesse et la densité du produit.
 - **Réglage du potentiomètre** : Calcule la graduation (0-30) pour la largeur de travail souhaitée (arrondi au chiffre supérieur pour garantir le recouvrement).
 - **Sécurité anti-surdosage** : Bride automatiquement les calculs à la largeur réelle maximale de la machine si la saisie est hors limites.
@@ -32,11 +32,11 @@ Ce projet est distribué sous licence **GNU GPL v3**. Vous êtes libre de l'util
 
 ## English Version
 
-Precision calibration tool for Delimbe slug pelted spreaders (T24 and T28 models).
+Precision calibration tool for Delimbe slug pelted spreaders (T4, T5, T24 and T28 models).
 This web application quickly calculates the optimal shutter opening (mechanical) and the width potentiometer position (electrical) from the tractor cabin.
 
 ### 🚀 Features
-- **Model Selection**: Supports both T24 (max 24m) and T28 (max 28m) spreaders.
+- **Model Selection**: Supports both T4/T5 (3 to 10m), T24 (max 24m) and T28 (max 28m) spreaders.
 - **Precision Calculation**: Determines the best shutter opening based on dose, speed, and product density.
 - **Potentiometer Setting**: Calculates the dial setting (0-30) for the desired working width (rounded up to ensure full coverage).
 - **Overdose Safety**: Automatically caps calculations to the machine's real maximum width if the input exceeds physical limits.
